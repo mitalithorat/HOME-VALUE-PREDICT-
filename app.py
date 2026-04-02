@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import shap
 import matplotlib.pyplot as plt
-import pickle
+import joblib
 import plotly.express as px
 
 # =========================
@@ -30,9 +30,9 @@ SCALER_FILE = "scaler.pkl"
 
 if os.path.exists(MODEL_FILE) and os.path.exists(SCALER_FILE):
     with open(MODEL_FILE, "rb") as f:
-        model = pickle.load(f)
+        model = joblib.load(f)
     with open(SCALER_FILE, "rb") as f:
-        scaler = pickle.load(f)
+        scaler = joblib.load(f)
 else:
     # Features and targets
     features = ['bedrooms','bathrooms','sqft_living','sqft_lot','floors']
@@ -60,9 +60,9 @@ else:
 
     # Save for future use
     with open(MODEL_FILE, "wb") as f:
-        pickle.dump(model, f)
+        joblib.dump(model, f)
     with open(SCALER_FILE, "wb") as f:
-        pickle.dump(scaler, f)
+        joblib.dump(scaler, f)
 
 # =========================
 # 3. Streamlit App Layout
@@ -176,22 +176,26 @@ elif page == "🔍 Explainability (SHAP)":
     st.header("Feature Importance via SHAP")
     
     features = ['bedrooms','bathrooms','sqft_living','sqft_lot','floors']
-    X_for_shap = df[features].values  # use raw features, not scaled
+    X_for_shap = df[features].fillna(0).values
 
     targets = ['price','sqft_living','bedrooms','bathrooms']
 
-    for i, target in enumerate(targets):
-        st.subheader(f"Feature Importance for {target}")
-        single_model = model.estimators_[i]  # get individual RF for this target
+    # Safety check (IMPORTANT)
+    if not hasattr(model, "estimators_"):
+        st.error("Model is not multi-output. Retrain model.")
+    else:
+        for i, single_model in enumerate(model.estimators_):
+            target = targets[i] if i < len(targets) else f"Target {i}"
 
-        # Initialize explainer (no check_additivity here)
-        explainer = shap.Explainer(single_model, X_for_shap)
-        
-        # Compute SHAP values with check_additivity=False
-        shap_values = explainer(X_for_shap[:100], check_additivity=False)
+            st.subheader(f"Feature Importance for {target}")
 
-        shap.plots.bar(shap_values, show=False)
-        st.pyplot(plt.gcf())
+            explainer = shap.Explainer(single_model, X_for_shap)
+            shap_values = explainer(X_for_shap[:100], check_additivity=False)
+
+            shap.plots.bar(shap_values, show=False)
+            st.pyplot(plt.gcf())
+
+            
 # =========================
 # Recommendation Page
 # =========================

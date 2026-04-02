@@ -1,7 +1,11 @@
 streamlit
 pandas
-numpy
-scikit-learn
-matplotlib
-plotly
 joblib
+matplotlib
+seaborn
+plotly
+openpyxl
+xgboost
+scikit-learn
+statsmodels
+shap==0.44.1

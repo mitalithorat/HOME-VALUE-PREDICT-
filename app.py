@@ -174,27 +174,24 @@ elif page == "📊 Visualization":
 # =========================
 elif page == "🔍 Explainability (SHAP)":
     st.header("Feature Importance via SHAP")
-    
-    features = ['bedrooms','bathrooms','sqft_living','sqft_lot','floors']
-    X_for_shap = df[features].fillna(0).values
 
-    targets = ['price','sqft_living','bedrooms','bathrooms']
-
-    # Safety check (IMPORTANT)
-    if not hasattr(model, "estimators_"):
-        st.error("Model is not multi-output. Retrain model.")
+    if shap is None:
+        st.warning("SHAP not available in deployment environment")
     else:
-        for i, single_model in enumerate(model.estimators_):
-            target = targets[i] if i < len(targets) else f"Target {i}"
+        features = ['bedrooms','bathrooms','sqft_living','sqft_lot','floors']
+        X_for_shap = df[features].fillna(0).values
 
-            st.subheader(f"Feature Importance for {target}")
+        if not hasattr(model, "estimators_"):
+            st.error("Model is not multi-output.")
+        else:
+            for i, single_model in enumerate(model.estimators_):
+                st.subheader(f"Feature Importance {i}")
 
-            explainer = shap.Explainer(single_model, X_for_shap)
-            shap_values = explainer(X_for_shap[:100], check_additivity=False)
+                explainer = shap.Explainer(single_model, X_for_shap)
+                shap_values = explainer(X_for_shap[:100], check_additivity=False)
 
-            shap.plots.bar(shap_values, show=False)
-            st.pyplot(plt.gcf())
-
+                shap.plots.bar(shap_values, show=False)
+                st.pyplot(plt.gcf())
             
 # =========================
 # Recommendation Page

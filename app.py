@@ -23,7 +23,11 @@ except:
 # =========================
 @st.cache_data
 def load_data():
-    return pd.read_csv("kc_house_data.csv")
+    try:
+        return pd.read_csv("kc_house_data.csv")
+    except Exception as e:
+        st.error(f"Error loading dataset: {e}")
+        return pd.DataFrame()
 
 df = load_data()
 
@@ -79,7 +83,6 @@ page = st.sidebar.radio("Navigation", [
     "📈 Dashboard", # new page
     "🏡 Prediction",
     "📊 Visualization",
-    "🔍 Explainability (SHAP)",
     "🤝 Recommendation",
     "📋 Dataset Info"
 ])
@@ -174,29 +177,6 @@ elif page == "📊 Visualization":
     ax.hist(df['price'], bins=50, color="#1f77b4", alpha=0.7)
     st.pyplot(fig)
 
-# =========================
-# SHAP Explainability
-# =========================
-elif page == "🔍 Explainability (SHAP)":
-    st.header("Feature Importance via SHAP")
-
-    if shap is None:
-        st.warning("SHAP not available in deployment environment")
-    else:
-        features = ['bedrooms','bathrooms','sqft_living','sqft_lot','floors']
-        X_for_shap = df[features].fillna(0).values
-
-        if not hasattr(model, "estimators_"):
-            st.error("Model is not multi-output.")
-        else:
-            for i, single_model in enumerate(model.estimators_):
-                st.subheader(f"Feature Importance {i}")
-
-                explainer = shap.Explainer(single_model, X_for_shap)
-                shap_values = explainer(X_for_shap[:100], check_additivity=False)
-
-                shap.plots.bar(shap_values, show=False)
-                st.pyplot(plt.gcf())
             
 # =========================
 # Recommendation Page

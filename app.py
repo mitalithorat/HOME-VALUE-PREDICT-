@@ -1,4 +1,5 @@
 import streamlit as st
+st.write("App started")
 import pandas as pd
 import numpy as np
 import datetime
@@ -8,10 +9,14 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import shap
+#import shap
 import matplotlib.pyplot as plt
 import joblib
 import plotly.express as px
+try:
+    import shap
+except:
+    shap = None
 
 # =========================
 # 1. Load Dataset
@@ -145,7 +150,7 @@ if page == "🏡 Prediction":
         input_scaled = scaler.transform(input_data)
         
         prediction = model.predict(input_scaled)  # shape: (1, n_targets)
-        prediction_value = prediction[0]          # get the first (and only) value
+        prediction_value = prediction[0] [0]         # get the first (and only) value
 
         st.success(f"💰 Predicted Price: ${prediction_value:,.2f}")
 
@@ -214,4 +219,5 @@ elif page == "📋 Dataset Info":
     st.write(df.isnull().sum())
     st.subheader("Summary Statistics")
     st.write(df.describe())
-    st.subheader("Timestamp")
+st.subheader("Timestamp")
+st.write(datetime.datetime.now())

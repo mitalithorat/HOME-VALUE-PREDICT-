@@ -4,4 +4,4 @@ pandas==2.1.4
 scikit-learn==1.3.2
 matplotlib==3.7.1
 plotly
-joblib
+joblib==1.3.2
